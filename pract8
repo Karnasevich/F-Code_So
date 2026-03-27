@@ -1,0 +1,188 @@
+CREATE TABLE groups (
+id INTEGER PRIMARY KEY,
+name TEXT UNIQUE,
+curator TEXT
+);
+
+CREATE TABLE students (
+id INTEGER PRIMARY KEY,
+full_name TEXT,
+group_id INTEGER,
+course INTEGER,
+avg_grade REAL,
+is_active INTEGER,
+FOREIGN KEY (group_id) REFERENCES groups(id)
+);
+
+CREATE TABLE subjects (
+id INTEGER PRIMARY KEY,
+name TEXT,
+hours INTEGER
+);
+
+CREATE TABLE grades (
+id INTEGER PRIMARY KEY,
+student_id INTEGER,
+subject_id INTEGER,
+grade INTEGER,
+semester INTEGER,
+FOREIGN KEY (student_id) REFERENCES students(id),
+FOREIGN KEY (subject_id) REFERENCES subjects(id)
+);
+
+INSERT INTO groups VALUES
+(1,'ІПЗ-11','Ковальчук О.М.'),
+(2,'ІПЗ-21','Бойко Т.С.'),
+(3,'ІПЗ-31','Савчук І.В.'),
+(4,'ІПЗ-41','Гнатюк П.П.');
+
+INSERT INTO students VALUES
+(1,'Іван Петренко',1,1,85,1),
+(2,'Олена Коваль',1,1,91,1),
+(3,'Андрій Шевченко',1,1,58,1),
+(4,'Марія Бондар',2,2,76,1),
+(5,'Сергій Мельник',2,2,92,1),
+(6,'Наталія Ткаченко',2,2,64,0),
+(7,'Дмитро Кравчук',2,2,88,1),
+(8,'Ірина Савчук',2,2,54,1),
+(9,'Віталій Мороз',3,3,90,1),
+(10,'Оксана Гнатюк',3,3,79,1),
+(11,'Роман Лисенко',3,3,66,0),
+(12,'Юлія Дяченко',3,3,97,1),
+(13,'Артем Бойко',3,3,45,1),
+(14,'Катерина Руденко',3,3,73,1),
+(15,'Максим Коваленко',1,1,82,1),
+(16,'Тарас Романюк',1,1,68,1),
+(17,'Богдан Марчук',2,2,87,1),
+(18,'Світлана Іванюк',2,2,74,0),
+(19,'Павло Ткач',3,3,81,1),
+(20,'Оксана Дорош',3,3,69,1);
+
+INSERT INTO subjects VALUES
+(1,'Програмування',120),
+(2,'Бази даних',90),
+(3,'Алгоритми',100),
+(4,'Математика',110),
+(5,'Операційні системи',95),
+(6,'Комп’ютерні мережі',80);
+
+INSERT INTO grades VALUES
+(1,1,1,90,1),(2,1,2,85,1),(3,1,3,80,1),
+(4,2,1,95,1),(5,2,2,92,1),(6,2,3,88,1),
+(7,3,1,60,1),(8,3,2,55,1),(9,3,4,50,1),
+(10,4,1,78,1),(11,4,2,74,1),(12,4,5,70,1),
+(13,5,1,93,1),(14,5,3,90,1),(15,5,4,91,1),
+(16,6,2,65,1),(17,6,3,60,1),(18,6,5,62,1),
+(19,7,1,88,1),(20,7,2,86,1),(21,7,3,90,1),
+(22,8,2,55,1),(23,8,4,58,1),(24,8,5,52,1),
+(25,9,1,91,1),(26,9,2,89,1),(27,9,3,92,1),
+(28,10,2,80,1),(29,10,3,78,1),(30,10,4,79,1),
+(31,11,1,67,1),(32,11,5,66,1),(33,11,6,65,1),
+(34,12,1,98,1),(35,12,2,96,1),(36,12,3,97,1),
+(37,13,2,50,1),(38,13,3,48,1),(39,13,4,46,1),
+(40,14,1,75,1),(41,14,5,72,1),(42,14,6,71,1),
+(43,15,1,83,1),(44,15,2,81,1),(45,15,4,82,1),
+(46,16,2,69,1),(47,16,3,67,1),(48,16,6,68,1),
+(49,17,1,88,1),(50,17,2,87,1),(51,17,3,86,1),
+(52,18,4,73,1),(53,18,5,72,1),(54,18,6,74,1),
+(55,19,1,82,1),(56,19,3,80,1),(57,19,5,81,1),
+(58,20,2,70,1),(59,20,4,68,1),(60,20,6,69,1);
+
+-- 1.1
+SELECT s.id AS student_id,
+s.full_name,
+g.name AS group_name,
+s.course,
+s.is_active
+FROM students s
+JOIN groups g ON s.group_id = g.id;
+
+-- 2.1
+SELECT g.name AS group_name,
+COUNT(s.id) AS cnt_students
+FROM groups g
+LEFT JOIN students s ON s.group_id = g.id
+GROUP BY g.id, g.name;
+
+-- 2.2
+SELECT course,
+COUNT(*) AS cnt_students,
+AVG(avg_grade) AS avg_grade_course
+FROM students
+GROUP BY course;
+
+-- 2.3
+SELECT g.name AS group_name,
+MIN(s.avg_grade) AS min_avg,
+MAX(s.avg_grade) AS max_avg
+FROM students s
+JOIN groups g ON s.group_id = g.id
+GROUP BY g.id, g.name;
+
+-- 1.2
+SELECT s.full_name,
+g.name AS group_name,
+s.course
+FROM students s
+JOIN groups g ON s.group_id = g.id
+WHERE s.course = 2
+ORDER BY g.name, s.full_name;
+
+-- 1.3
+SELECT s.full_name,
+sub.name AS subject_name,
+gr.semester,
+gr.grade
+FROM grades gr
+JOIN students s ON gr.student_id = s.id
+JOIN subjects sub ON gr.subject_id = sub.id
+ORDER BY s.full_name, sub.name;
+
+-- 3.1
+SELECT sub.name AS subject_name,
+COUNT(gr.id) AS cnt_grades
+FROM subjects sub
+LEFT JOIN grades gr ON gr.subject_id = sub.id
+GROUP BY sub.id, sub.name;
+
+-- 3.2
+SELECT s.full_name,
+AVG(gr.grade) AS avg_grade_by_subjects
+FROM students s
+JOIN grades gr ON gr.student_id = s.id
+GROUP BY s.id, s.full_name
+ORDER BY avg_grade_by_subjects DESC;
+
+-- 3.3
+SELECT g.name AS group_name,
+AVG(gr.grade) AS avg_grade_group
+FROM groups g
+JOIN students s ON s.group_id = g.id
+JOIN grades gr ON gr.student_id = s.id
+GROUP BY g.id, g.name
+ORDER BY avg_grade_group DESC;
+
+-- 4.1
+SELECT g.name AS group_name,
+COUNT(s.id) AS cnt_students
+FROM groups g
+LEFT JOIN students s ON s.group_id = g.id
+GROUP BY g.id, g.name
+HAVING COUNT(s.id) >= 6;
+
+-- 4.2
+SELECT sub.name AS subject_name,
+COUNT(gr.id) AS cnt_grades
+FROM subjects sub
+JOIN grades gr ON gr.subject_id = sub.id
+GROUP BY sub.id, sub.name
+HAVING COUNT(gr.id) >= 8;
+
+-- 4.3
+SELECT s.full_name,
+AVG(gr.grade) AS avg_grade,
+COUNT(gr.id) AS cnt_grades
+FROM students s
+JOIN grades gr ON gr.student_id = s.id
+GROUP BY s.id, s.full_name
+HAVING AVG(gr.grade) >= 85 AND COUNT(gr.id) >= 3;
